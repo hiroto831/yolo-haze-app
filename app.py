@@ -24,25 +24,24 @@ model = load_model(model_path)
 # 信頼度閾値のスライダー
 conf_threshold = st.slider("信頼度閾値 (Confidence Threshold)", 0.0, 1.0, 0.25, 0.05)
 
-# --- 新機能 1: 複数画像のアップロード ---
+# --- 複数画像のアップロード ---
 uploaded_files = st.file_uploader("評価対象の画像を選択してください（複数選択可）", type=["jpg", "jpeg", "png"], accept_multiple_files=True)
 
 if uploaded_files and model is not None:
-    # --- 新機能 2: 推論開始ボタン ---
+    # --- 推論開始ボタン ---
     if st.button("🚀 推論開始"):
         st.write("---")
         
         # 複数枚の画像をループ処理で1枚ずつ推論・表示する
         for uploaded_file in uploaded_files:
-            # 画像の読み込み
+            # 画像の読み込み (RGB形式)
             image = Image.open(uploaded_file).convert("RGB")
-            img_array = np.array(image)
             
-            # YOLOによる推論実行
-            results = model.predict(source=img_array, conf=conf_threshold, verbose=False)
+            # YOLOによる推論実行（NumPy配列にせず、Pillowの画像を直接渡すことで色の狂いを防ぎます）
+            results = model.predict(source=image, conf=conf_threshold, verbose=False)
             
-            # 推論結果のバウンディングボックスを描画した画像を取得 (BGR配列)
-            res_plotted = results[0].plot()
+            # 推論結果の画像を取得 (bgr=False を指定して、枠線の色等も含めてRGBで取得)
+            res_plotted = results[0].plot(bgr=False)
             
             # 画面への表示レイアウト（左右2列）
             col1, col2 = st.columns(2)
@@ -52,14 +51,10 @@ if uploaded_files and model is not None:
                 
             with col2:
                 st.subheader("物体検知結果")
-                # channels="BGR" を指定して正常な色合いで表示
-                st.image(res_plotted, channels="BGR", use_container_width=True)
+                # channels="BGR" の指定を削除し、そのまま（デフォルトのRGBとして）表示
+                st.image(res_plotted, use_container_width=True)
                 
             # 検出数の表示
             boxes = results[0].boxes
             st.success(f"[{uploaded_file.name}] 検知された物体数: {len(boxes)} 個 (信頼度閾値: {conf_threshold})")
             st.write("---")
-
-# --- 新機能 3: 参考資料の削除 ---
-# 以前画面下部に表示していた results.png や confusion_matrix.png の
-# 画像読み込み・表示コードは完全に削除（非表示化）しました。
