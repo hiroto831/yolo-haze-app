@@ -34,14 +34,15 @@ if uploaded_files and model is not None:
         
         # 複数枚の画像をループ処理で1枚ずつ推論・表示する
         for uploaded_file in uploaded_files:
-            # 画像の読み込み (RGB形式)
+            # 画像の読み込み
             image = Image.open(uploaded_file).convert("RGB")
+            img_array = np.array(image)
             
-            # YOLOによる推論実行（NumPy配列にせず、Pillowの画像を直接渡すことで色の狂いを防ぎます）
-            results = model.predict(source=image, conf=conf_threshold, verbose=False)
+            # YOLOによる推論実行
+            results = model.predict(source=img_array, conf=conf_threshold, verbose=False)
             
-            # 推論結果の画像を取得 (bgr=False を指定して、枠線の色等も含めてRGBで取得)
-            res_plotted = results[0].plot(bgr=False)
+            # 推論結果のバウンディングボックスを描画した画像を取得 (BGR配列)
+            res_plotted = results[0].plot()
             
             # 画面への表示レイアウト（左右2列）
             col1, col2 = st.columns(2)
@@ -51,8 +52,8 @@ if uploaded_files and model is not None:
                 
             with col2:
                 st.subheader("物体検知結果")
-                # channels="BGR" の指定を削除し、そのまま（デフォルトのRGBとして）表示
-                st.image(res_plotted, use_container_width=True)
+                # channels="BGR" を指定して、色調を元画像と完全に一致させる
+                st.image(res_plotted, channels="BGR", use_container_width=True)
                 
             # 検出数の表示
             boxes = results[0].boxes
