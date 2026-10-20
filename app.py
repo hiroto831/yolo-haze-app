@@ -9,7 +9,7 @@ st.title("🌫️ ヘイズ検証用 Web アプリ（YOLO 物体検知）")
 st.write("ファインチューニング済みモデル (best.pt) による物体検知デモ")
 
 # モデルパスの指定
-model_path = st.sidebar.text_input("モデルパス", value="best.pt")
+model_path = st.sidebar.text_input("モデルパス", value="models/best.pt")
 
 @st.cache_resource
 def load_model(path):
