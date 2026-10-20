@@ -8,7 +8,7 @@ st.set_page_config(page_title="Haze Detection App", layout="wide")
 st.title("🌫️ ヘイズ検証用 Web アプリ（YOLO 物体検知）")
 st.write("ファインチューニング済みモデル (best.pt) による物体検知デモ")
 
-# モデルのロード (サイドバーでパス調整可能)
+# モデルのロード
 model_path = st.sidebar.text_input("モデルパス", value="best.pt")
 
 @st.cache_resource
@@ -34,7 +34,7 @@ if uploaded_file is not None and model is not None:
     # YOLOによる推論実行
     results = model.predict(source=img_array, conf=conf_threshold, verbose=False)
     
-    # 推論結果のバウンディングボックスを描画した画像を取得
+    # 推論結果のバウンディングボックスを描画した画像を取得 (BGR配列)
     res_plotted = results[0].plot()
     
     col1, col2 = st.columns(2)
@@ -44,6 +44,7 @@ if uploaded_file is not None and model is not None:
         
     with col2:
         st.subheader("物体検知結果")
+        # channels="BGR" を明示して色反転を防止
         st.image(res_plotted, channels="BGR", use_container_width=True)
         
     # 検出数の表示
